@@ -110,9 +110,9 @@ resource "azurerm_machine_learning_compute_cluster" "compute_cluster" {
 #### Azure Private Link and Azure Private Endpoint
 Azure Private Link enables you to access Azure PaaS Services (for example, Azure Machine Learning Workspace, Azure Storage etc.) and Azure hosted customer-owned/partner services over a private endpoint in your virtual network. A private endpoint is a network interface which only tied to the specific chosen Azure resources thereby protecting data exfiltration. 
 
-In Figure 3, there are four private endpoints tied to the correspoinding Azure PaaS services (Azure Machine Learning workspace, Azure Blob Storage, Azure Container Registry and Azure Key Vault) that are managed by a subnet in AML VNET. Therefore, these Azure PaaS services are only accessbile to the resources within the same virtual network, i.e. AML VNET. 
+In Figure 3, there are four private endpoints tied to the corresponding Azure PaaS services (Azure Machine Learning workspace, Azure Blob Storage, Azure Container Registry and Azure Key Vault) that are managed by a subnet in AML VNET. Therefore, these Azure PaaS services are only accessible to the resources within the same virtual network, i.e. AML VNET. 
 
-The following Terraform script sippet shows how to use priate endpoint to link to an Azure Machine Learning workspace thus it can be protected by the virtual network. About the usage of the priate DNS zones, you may refer to the next section for the details.
+The following Terraform script snippet shows how to use private endpoint to link to an Azure Machine Learning workspace thus it can be protected by the virtual network. About the usage of the private DNS zones, you may refer to the next section for the details.
 
 ```
 resource "azurerm_machine_learning_workspace" "aml_ws" {
