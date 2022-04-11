@@ -52,7 +52,7 @@ In order to address the challenges above, you need to consider the following asp
   * Encrypt training data in transit and at rest, by using Microsoft-managed or customer-managed keys
 * Policy and Monitoring
   * Use Azure Policy and the Azure Security Center to enforce policies
-  * Use Azure Monitor to collect and aggregate data (metrics, logs) from variaty of sources into a common data platform where it can be used for analysis, visualization and alerting.
+  * Use Azure Monitor to collect and aggregate data (metrics, logs) from variety of sources into a common data platform where it can be used for analysis, visualization and alerting.
 
 In this article, we'll be focusing on how to leverage Azure Network Security mechanism to protect the MLOps environment.
 
@@ -67,7 +67,7 @@ The diagram below shows the architecture of a sample MLOps solution, which is bu
 *Figure 3. System Architecture*
 
 As you can see, as the core of MLOps solution, Azure Machine Learning workspace and its associated resources are protected by the virtual network, AML VNET. 
-The jump host, Azure Bastion and self-hosted agents are in another virutual network, BASTION VNET which simulates another solution that need to access the resources within AML VNET. 
+The jump host, Azure Bastion and self-hosted agents are in another virtual network, BASTION VNET which simulates another solution that need to access the resources within AML VNET. 
 With the support of VNet peering and private DNS zones, Azure Pipelines can be executed on self-host agents and then trigger Azure Machine Learning pipelines to train/evaluate/register the machine learning models.
 Finally, the model will be deployed as a web service on Azure Kubernetes Cluster.
 This is how the Azure Pipelines and Azure Machine Learning pipelines work in this MLOps solution.
@@ -239,9 +239,9 @@ As Azure Machine Learning workspace's been put into AML VNET, how could data sci
 * ExpressRoute - Connects on-premises networks into the cloud over a private connection. Connection is made using a connectivity provider.
 * Azure Bastion - In this scenario, as shown in Figure 3, you create an Azure Virtual Machine (the jump host) inside the VNet. You then connect to the VM using Azure Bastion. Bastion allows you to connect to the VM using either an RDP or SSH session from your local web browser. You then use the jump host as your development environment. Since it is inside the VNet, it can directly access the workspace.
 
-Please note that Azure Bastion may not work properly for your company's accounts if there are any specific conditional access policies defined. Therefore, Azure VPN Gateway or ExpressRoute are recommended ways to access the resouces secured behind a VNet.
+Please note that Azure Bastion may not work properly for your company's accounts if there are any specific conditional access policies defined. Therefore, Azure VPN Gateway or ExpressRoute are recommended ways to access the resources secured behind a VNet.
 
-Moreover, you need to take the cost into account per your actual business requirments:
+Moreover, you need to take the cost into account per your actual business requirements:
 |Azure Service|Pricing|
 |--|--|
 |Azure VPN gateway|Charged based on the amount of time that gateway is provisioned and available|
@@ -252,7 +252,7 @@ Moreover, you need to take the cost into account per your actual business requir
 Azure Pipelines automatically builds and tests code projects to make them available to others. Azure Pipelines combines continuous integration (CI) and continuous delivery (CD) to test and build your code and ship it to any target.
 
 #### Microsoft-hosted Agents vs Self-hosted Agents
-As metioned in the previous section, the MLOps solution consists of a couple of Azure Pipelines which can trigger Azure Machine Learning pipelines and access associated resources. Since the Azure Machine Learning workspace and its associated resource are behind a VNet, we need to figure out a way for a Azure Pipeline Agent(the computing infrastructure with installed agent software that runs one job of the Azure Pipeline at a time) to access them. There are a couple of ways to implement it:
+As mentioned in the previous section, the MLOps solution consists of a couple of Azure Pipelines which can trigger Azure Machine Learning pipelines and access associated resources. Since the Azure Machine Learning workspace and its associated resource are behind a VNet, we need to figure out a way for a Azure Pipeline Agent(the computing infrastructure with installed agent software that runs one job of the Azure Pipeline at a time) to access them. There are a couple of ways to implement it:
 * Use self-hosted agents in the same VNet or the peering VNet(as shown in Figure 3.)
 * Use Microsoft-hosted agents and whitelist its IP ranges in the firewall settings of target Azure services
 * Use Microsoft-hosted agents (as VPN clients) and Azure VPN Gateway
@@ -264,7 +264,7 @@ Each of the choices above has its pros and cons. First, let's compare Microsoft-
 |Maintainance and control|Maintenance and upgrades are taken care of for you|Maintained by yourself with more control of installing any software you like on the Azure Virtual Machine|
 |Build time|More time consuming since it completely freshes every time you start a build and you always start from scratch|Save you some build time because it keeps all your files and caches (npm, NuGet etc.)|
 
-Based on the comparison above, plus the considerartion of security and complexity, we choose to use a self-hosted agent for the Azure Pipeline to trigger AML pipelines in the VNet. To set up a self-hosted agent, we have the following options:
+Based on the comparison above, plus the consideration of security and complexity, we choose to use a self-hosted agent for the Azure Pipeline to trigger AML pipelines in the VNet. To set up a self-hosted agent, we have the following options:
 * To install the agent on Azure Virtual Machines
 * To install the agents on Azure Virtual Machine scale set that can be auto-scaled to meet the customer's demands
 * To install the agent on Docker container. This is not feasible as we may need run Docker container within the agent for machine learning model training.
@@ -320,7 +320,7 @@ sudo ./svc.sh start
 ```
 
 #### Use Azure Container Registry in VNet
-Azure Container Registry is a required service when you use Azure Machine Learing workspace to train and deploy the models.
+Azure Container Registry is a required service when you use Azure Machine Learning workspace to train and deploy the models.
 
 While securing the Azure Machine Learning workspace with virtual networks, there are some prerequisites about Azure Container Registry:
 * Your Azure Container Registry must be Premium version.
@@ -374,7 +374,7 @@ resource "azurerm_private_endpoint" "acr_ep" {
 In the meantime, you should ensure that the Azure Container Registry has a contributor role for the system assigned managed identity of Azure Machine Learning workspace.
 
 #### Use Compute Cluster/Instance in VNet
-When putting a Azure Machine Learning compute cluster/instance into a VNet, you need to create network security group (NSG) for its subnet. This NSG contains the following rules, which are specific to the compute cluster/instance:
+When putting an Azure Machine Learning compute cluster/instance into a VNet, you need to create network security group (NSG) for its subnet. This NSG contains the following rules, which are specific to the compute cluster/instance:
 * Allow inbound TCP traffic on ports 29876-29877 from the BatchNodeManagement service tag.
 * Allow inbound TCP traffic on port 44224 from the AzureMachineLearning service tag.
 
