@@ -1,0 +1,87 @@
+# Azure Pipeline to destroy initialized resource values
+
+# Need to define the following variables in the variable group
+# - AZURE_RM_SVC_CONNECTION
+# - ENV e.g. ssdev
+# - IOT_EDGE_VM_USERNAME
+# - JUMPHOST_PASSWORD
+# - JUMPHOST_USERNAME
+# - LOCATION
+# - PREFIX (less than 9 characters considering the limitation of the storage account name)
+# - REGION
+# - RESOURCE_GROUP
+# - WORKSPACE_DISPLAY_NAME
+
+trigger:
+- none
+
+# trigger:
+#   branches:
+#     include:
+#     - master
+#   paths:
+#     include:
+#     - tf-init-rsc/*
+# pr:
+#   branches:
+#     include:
+#     - master
+#   paths:
+#     include:
+#     - tf-init-rsc/*
+
+pool:
+  name: $(AGENT_POOL)
+  # demands:
+  #  - agent.name -equals $(AGENT_NAME)
+
+variables:
+- group: iac-pl-vg
+
+
+steps:
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: 0.14.9
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF init - Deploy resources to Azure'
+  inputs:
+    command: init
+    commandOptions: '--upgrade'
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init-rsc'
+    backendType: azurerm
+    backendServiceArm: $(AZURE_RM_SVC_CONNECTION)
+    ensureBackend: true
+    backendAzureRmResourceGroupLocation: $(LOCATION)
+    backendAzureRmResourceGroupName: '$(RESOURCE_GROUP)'
+    backendAzureRmStorageAccountName: '$(PREFIX)$(REGION)strtf$(ENV)'
+    backendAzureRmStorageAccountSku: 'Standard_LRS'
+    backendAzureRmContainerName: 'tfstate-cont'
+    backendAzureRmKey: 'svinit.tfstate'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF destroy'
+  inputs:
+    command: destroy
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init-rsc'
+    environmentServiceName: $(AZURE_RM_SVC_CONNECTION)
+    commandOptions: '-var-file="dev.tfvars"'
+    runAzLogin: true
+  env:
+    TF_VAR_ADO_ORG_SERVICE_URL: $(System.CollectionUri)
+    TF_VAR_ADO_PAT: $(ADO_PAT)
+    TF_VAR_ADO_PROJECT: $(System.TeamProject)
+    TF_VAR_ENV: $(ENV)
+    TF_VAR_IOT_EDGE_VM_USERNAME: $(IOT_EDGE_VM_USERNAME)
+    TF_VAR_JUMPHOST_USERNAME: $(JUMPHOST_USERNAME)
+    TF_VAR_JUMPHOST_PASSWORD: $(JUMPHOST_PASSWORD)
+    TF_VAR_LOCATION: $(LOCATION)
+    TF_VAR_PREFIX: $(PREFIX)
+    TF_VAR_REGION: $(REGION)
+    TF_VAR_RESOURCE_GROUP: $(RESOURCE_GROUP)
+    TF_VAR_SP_KEY: $(SP_KEY)
+    TF_VAR_VARIABLE_GROUP_CDTST: $(VARIABLE_GROUP_CDTST)
+    TF_VAR_VARIABLE_GROUP_IACKV: $(VARIABLE_GROUP_IACKV)
+    TF_VAR_WORKSPACE_DISPLAY_NAME: $(WORKSPACE_DISPLAY_NAME)

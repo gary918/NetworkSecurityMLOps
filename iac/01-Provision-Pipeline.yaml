@@ -1,0 +1,136 @@
+# Azure Pipeline to provision Azure resources
+
+# Need to define the following variables in the variable group
+# - AZURE_RM_SVC_CONNECTION
+# - ENV: e.g. ssdev
+# - IOT_EDGE_VM_USERNAME
+# - JUMPHOST_PASSWORD
+# - JUMPHOST_USERNAME
+# - LOCATION
+# - PREFIX (less than 9 characters considering the limitation of the storage account name)
+# - REGION
+# - RESOURCE_GROUP
+# - WORKSPACE_DISPLAY_NAME
+
+trigger:
+- none
+
+# trigger:
+#   branches:
+#     include:
+#     - master
+#   paths:
+#     include:
+#     - terraform/*
+# pr:
+#   branches:
+#     include:
+#     - master
+#   paths:
+#     include:
+#     - terraform/*
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- group: iac-pl-vg
+
+
+jobs:
+- job: ProvisionResources
+  displayName: 'Privisoning the resources'
+  timeoutInMinutes: 0
+  steps:
+  # - bash: |
+  #     python -m pip install -U --force-reinstall pip pip install azure-cli==2.29
+  #   displayName: 'Install Azure CLI'
+
+  - task: AzureCLI@2
+    displayName: Add azure extensions
+    inputs:
+      azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az --version
+        az extension add --name azure-cli-ml
+        az extension add --name azure-iot
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 0.14.9
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'TF init - Deploy resources to Azure'
+    inputs:
+      command: init
+      commandOptions: '--upgrade'
+      workingDirectory: '$(Build.SourcesDirectory)/iac/terraform'
+      backendType: azurerm
+      backendServiceArm: $(AZURE_RM_SVC_CONNECTION)
+      ensureBackend: true
+      backendAzureRmResourceGroupLocation: $(LOCATION)
+      backendAzureRmResourceGroupName: '$(RESOURCE_GROUP)'
+      backendAzureRmStorageAccountName: '$(PREFIX)$(REGION)strtf$(ENV)'
+      backendAzureRmStorageAccountSku: 'Standard_LRS'
+      backendAzureRmContainerName: 'tfstate-cont'
+      backendAzureRmKey: 'svinfra.tfstate'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'TF validate - Deploy resources to Azure'
+    inputs:
+      command: validate
+      workingDirectory: '$(Build.SourcesDirectory)/iac/terraform'
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'TF plan - Deploy resources to Azure'
+    inputs:
+      command: plan
+      workingDirectory: '$(Build.SourcesDirectory)/iac/terraform'
+      environmentServiceName: $(AZURE_RM_SVC_CONNECTION)
+      commandOptions: '-var-file="dev.tfvars"'
+    env:
+      TF_VAR_ADO_ORG_SERVICE_URL: $(System.CollectionUri)
+      TF_VAR_ADO_PAT: $(ADO_PAT)
+      TF_VAR_AGENT_POOL: $(AGENT_POOL)
+      TF_VAR_AML_COMPUTE_TARGET: $(AML_COMPUTE_TARGET)
+      TF_VAR_AML_COMPUTE_TARGET_VM_SIZE: $(AML_COMPUTE_TARGET_VM_SIZE)
+      TF_VAR_ENV: $(ENV)
+      TF_VAR_IOT_EDGE_VM_USERNAME: $(IOT_EDGE_VM_USERNAME)
+      TF_VAR_JUMPHOST_USERNAME: $(JUMPHOST_USERNAME)
+      TF_VAR_JUMPHOST_PASSWORD: $(JUMPHOST_PASSWORD)
+      TF_VAR_LOCATION: $(LOCATION)
+      TF_VAR_PREFIX: $(PREFIX)
+      TF_VAR_REGION: $(REGION)
+      TF_VAR_RESOURCE_GROUP: $(RESOURCE_GROUP)
+      TF_VAR_WORKSPACE_DISPLAY_NAME: $(WORKSPACE_DISPLAY_NAME)
+      
+
+  - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+    displayName: 'TF apply - Deploy resources to Azure'
+    inputs:
+      command: apply
+      workingDirectory: '$(Build.SourcesDirectory)/iac/terraform'
+      environmentServiceName: $(AZURE_RM_SVC_CONNECTION)
+      commandOptions: '-var-file="dev.tfvars"'
+      addSpnToEnvironment: true
+      runAzLogin: true
+    env:
+      TF_VAR_ADO_ORG_SERVICE_URL: $(System.CollectionUri)
+      TF_VAR_ADO_PAT: $(ADO_PAT)
+      TF_VAR_AGENT_POOL: $(AGENT_POOL)
+      TF_VAR_AML_COMPUTE_TARGET: $(AML_COMPUTE_TARGET)
+      TF_VAR_AML_COMPUTE_TARGET_VM_SIZE: $(AML_COMPUTE_TARGET_VM_SIZE)
+      TF_VAR_ENV: $(ENV)
+      TF_VAR_IOT_EDGE_VM_USERNAME: $(IOT_EDGE_VM_USERNAME)
+      TF_VAR_JUMPHOST_USERNAME: $(JUMPHOST_USERNAME)
+      TF_VAR_JUMPHOST_PASSWORD: $(JUMPHOST_PASSWORD)
+      TF_VAR_LOCATION: $(LOCATION)
+      TF_VAR_PREFIX: $(PREFIX)
+      TF_VAR_REGION: $(REGION)
+      TF_VAR_RESOURCE_GROUP: $(RESOURCE_GROUP)
+      TF_VAR_WORKSPACE_DISPLAY_NAME: $(WORKSPACE_DISPLAY_NAME)
+
+  - publish: $(Build.SourcesDirectory)/iac/.ssh/id_rsa
+    artifact: iot_edge_vm_private_key
