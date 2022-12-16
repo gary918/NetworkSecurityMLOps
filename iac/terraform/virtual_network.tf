@@ -227,13 +227,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "kv_zone_bas_link" {
   virtual_network_id    = azurerm_virtual_network.sv_bas_vnet.id
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "fun_dns_zone_bas_link" {
-  name                  = "${var.PREFIX}_${var.REGION}_link_fun_bas"
-  resource_group_name   = var.RESOURCE_GROUP
-  private_dns_zone_name = azurerm_private_dns_zone.fun_dns_zone.name
-  virtual_network_id    = azurerm_virtual_network.sv_bas_vnet.id
-}
-
 resource "azurerm_private_dns_zone_virtual_network_link" "ws_zone_api_bas_link" {
   name                  = "${var.PREFIX}_${var.REGION}_link_api_bas"
   resource_group_name   = var.RESOURCE_GROUP
