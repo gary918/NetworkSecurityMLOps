@@ -9,11 +9,14 @@ resource "azurerm_machine_learning_workspace" "sv_ws" {
   key_vault_id            = azurerm_key_vault.sv_kv.id
   storage_account_id      = azurerm_storage_account.sv_sa.id
   container_registry_id   = azurerm_container_registry.sv_acr_aml.id
-  v1_legacy_mode_enabled  = true
   
+
   identity {
     type = "SystemAssigned"
   }
+
+  public_network_access_enabled = false
+  v1_legacy_mode_enabled  = true
 }
 
 resource "azurerm_machine_learning_compute_instance" "sv_ws_comp_inst" {
