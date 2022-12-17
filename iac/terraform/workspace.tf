@@ -16,7 +16,7 @@ resource "azurerm_machine_learning_workspace" "sv_ws" {
   }
 
   public_network_access_enabled = false
-  v1_legacy_mode_enabled  = true
+  v1_legacy_mode  = true
 }
 
 resource "azurerm_machine_learning_compute_instance" "sv_ws_comp_inst" {
