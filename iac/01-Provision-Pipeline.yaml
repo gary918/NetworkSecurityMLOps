@@ -59,7 +59,7 @@ jobs:
   - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
     displayName: 'Install Terraform'
     inputs:
-      terraformVersion: 0.14.9
+      terraformVersion: latest
 
   - task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
     displayName: 'TF init - Deploy resources to Azure'
