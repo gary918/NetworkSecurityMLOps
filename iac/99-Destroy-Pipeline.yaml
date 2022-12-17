@@ -38,9 +38,6 @@ variables:
 
 
 steps:
-- bash: |
-    python -m pip install -U --force-reinstall pip pip install azure-cli==2.29
-  displayName: 'Install Azure CLI'
 
 - task: AzureCLI@2
   displayName: Add azure-iot extension
